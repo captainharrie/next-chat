@@ -5,6 +5,9 @@ import { signOut } from "firebase/auth";
 import { useAuthContext } from "../contexts/LoggedInUser";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import ChatRoom from "../components/ChatRoom";
+import NewMessage from "../components/NewMessage";
+
 export default function Page() {
   const { user } = useAuthContext();
   const router = useRouter();
@@ -16,7 +19,8 @@ export default function Page() {
       <>
         <section className="p-5 border border-gray-200">
           <p>User: {user.email}</p>
-          <p>Chat goes here</p>
+          <ChatRoom />
+          <NewMessage />
         </section>
         <button
           className="bg-blue-400 px-3 py-2 rounded hover:bg-blue-300 mt-5"
