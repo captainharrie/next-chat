@@ -1,49 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { app } from "@/lib/firebase";
 import "firebase/firestore";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { collection, getDoc, getDocs, getFirestore } from "firebase/firestore";
 import getData from "../firestore/getData";
 // import { formatRelative } from "date-fns";
 
 const db = getFirestore(app);
 
-export default function ChatRoom(props) {
+export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
 
   async function getMessages() {
     const querySnapshot = await getDocs(collection(db, "messages"));
-    const fetchedMessages = querySnapshot.docs.map((doc) => doc.data());
+
+    const fetchedMessagesPromises = querySnapshot.docs.map(async (doc) => {
+      const body = doc.data().body;
+      const userData = await getDoc(doc.data().userRef);
+      const displayName = await userData.get("displayName");
+      return { body, displayName };
+    });
+    const fetchedMessages = await Promise.all(fetchedMessagesPromises);
     return fetchedMessages;
   }
 
-  async function getDisplayName(uid) {
-    const displayName = (await getData("users", uid)).result.get("displayName");
-    return displayName;
-  }
-
   useEffect(() => {
-    getMessages()
-      .then((messages) => {
-        const messagesOutput = messages.map((message) => {
-          const uid = message.userRef.firestore._firestoreClient.user.uid;
-          const displayName = getDisplayName(uid);
-          return {
-            displayName,
-            body: message.body,
-          };
-        });
-        return Promise.all(messagesOutput);
-      })
-      .then((messagesOutput) => {
-        setMessages(messagesOutput);
-      });
+    getMessages().then((messages) => {
+      setMessages(messages);
+    });
   }, []);
 
   return (
     <section id="chat_room">
-      {messages.map((message) => (
-        <p>
+      {messages.map((message, i) => (
+        <p key={i}>
           {message.displayName}:{message.body}
         </p>
       ))}
