@@ -10,7 +10,6 @@ export default async function signUp(email, displayName, password) {
       displayName,
       password
     );
-    console.log(newUser);
     const { result } = await addData("users", newUser.user.uid, {
       email: newUser.user.email,
       displayName: newUser.user.displayName,
