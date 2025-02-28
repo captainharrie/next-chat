@@ -14,6 +14,7 @@ export default function Page() {
   useEffect(() => {
     if (!user) router.push("/login");
   }, []);
+
   if (user)
     return (
       <>
