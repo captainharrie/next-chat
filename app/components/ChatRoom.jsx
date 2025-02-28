@@ -1,39 +1,46 @@
 import { useEffect, useState } from "react";
-import { app } from "@/lib/firebase";
-import "firebase/firestore";
-import { collection, getDoc, getDocs, getFirestore } from "firebase/firestore";
-import getData from "../firestore/getData";
-// import { formatRelative } from "date-fns";
-
-const db = getFirestore(app);
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { format } from "date-fns";
 
 export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
-
+  let unsubscribe;
   async function getMessages() {
-    const querySnapshot = await getDocs(collection(db, "messages"));
-
-    const fetchedMessagesPromises = querySnapshot.docs.map(async (doc) => {
-      const body = doc.data().body;
-      const userData = await getDoc(doc.data().userRef);
-      const displayName = await userData.get("displayName");
-      return { body, displayName };
+    const dbQuery = query(collection(db, "messages"), orderBy("createdAt"));
+    unsubscribe = onSnapshot(dbQuery, (querySnapshot) => {
+      const messagePromises = querySnapshot.docs.map(async (doc) => {
+        const userData = await getDoc(doc.data().userRef);
+        const timestamp = doc.data().createdAt * 1000;
+        const formattedTimestamp = format(timestamp, "hh:mm a");
+        const [displayName, body] = await Promise.all([
+          userData.get("displayName"),
+          doc.data().body,
+        ]);
+        return { displayName, body, formattedTimestamp };
+      });
+      Promise.all(messagePromises).then((messages) => {
+        setMessages(messages);
+      });
     });
-    const fetchedMessages = await Promise.all(fetchedMessagesPromises);
-    return fetchedMessages;
   }
 
   useEffect(() => {
-    getMessages().then((messages) => {
-      setMessages(messages);
-    });
-  }, []);
+    getMessages();
+  }, [db]);
 
   return (
     <section id="chat_room">
       {messages.map((message, i) => (
         <p key={i}>
-          {message.displayName}:{message.body}
+          <b>{`(${message.formattedTimestamp}) ${message.displayName}: `}</b>{" "}
+          {message.body}
         </p>
       ))}
     </section>
