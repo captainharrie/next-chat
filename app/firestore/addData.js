@@ -31,7 +31,6 @@ export async function addDataWithAutoID(collectionName, data) {
     result = await addDoc(collection(db, collectionName), data, {
       merge: true,
     });
-    console.log(result);
   } catch (error) {
     console.log(error);
   }
