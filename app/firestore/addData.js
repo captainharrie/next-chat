@@ -1,5 +1,11 @@
 import { app } from "@/lib/firebase";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  addDoc,
+  collection,
+} from "firebase/firestore";
 
 const db = getFirestore(app);
 
@@ -13,6 +19,21 @@ export default async function addData(collection, id, data) {
     });
   } catch (e) {
     error = e;
+  }
+
+  return { result, error };
+}
+
+export async function addDataWithAutoID(collectionName, data) {
+  let result = null;
+  let error = null;
+  try {
+    result = await addDoc(collection(db, collectionName), data, {
+      merge: true,
+    });
+    console.log(result);
+  } catch (error) {
+    console.log(error);
   }
 
   return { result, error };
