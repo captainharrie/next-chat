@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import ChatRoom from "../components/ChatRoom";
 import NewMessage from "../components/NewMessage";
+import { Button } from "@mui/material";
 
 export default function Page() {
   const { user } = useAuthContext();
@@ -23,15 +24,14 @@ export default function Page() {
           <ChatRoom />
           <NewMessage />
         </section>
-        <button
-          className="bg-blue-400 px-3 py-2 rounded hover:bg-blue-300 mt-5"
+        <Button
           onClick={() => {
             signOut(auth);
             router.push("/login");
           }}
         >
           Sign out
-        </button>
+        </Button>
       </>
     );
 }
